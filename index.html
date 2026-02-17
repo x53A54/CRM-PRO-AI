@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #12141a; /* Dark charcoal/Deep slate */
+            color: #e2e8f0;
+            margin: 0;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .primary-gradient {
+            background: linear-gradient(135deg, #059212, #06D001);
+        }
+        .accent-gradient {
+            background: linear-gradient(135deg, #06D001, #9BEC00);
+        }
+        .soft-highlight {
+            background-color: rgba(243, 255, 144, 0.05);
+        }
+        .text-gradient-green {
+            background: linear-gradient(135deg, #06D001, #9BEC00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #12141a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        .glow-green {
+            box-shadow: 0 0 25px rgba(6, 208, 1, 0.15);
+        }
+        .btn-hover-glow:hover {
+            box-shadow: 0 0 20px rgba(6, 208, 1, 0.4);
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "recharts": "https://esm.sh/recharts@^3.7.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
