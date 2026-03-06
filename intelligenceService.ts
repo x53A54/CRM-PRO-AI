@@ -1,60 +1,144 @@
+// Base API URL
+const API = "http://localhost:5000/api";
 
-import { Lead, LeadStatus, LeadPriority, Suggestion } from './types';
 
-export const getApproachSuggestions = (lead: Lead): Suggestion[] => {
-  const suggestions: Suggestion[] = [];
+// LOGIN USER
+export const loginUser = async (email: string, password: string) => {
 
-  if (lead.status === LeadStatus.NEW) {
-    suggestions.push({
-      title: 'Immediate Welcome',
-      description: 'Send an automated welcome message with a link to your portfolio or services list.',
-      type: 'immediate'
-    });
-    suggestions.push({
-      title: 'Quick Intro Call',
-      description: 'Schedule a 5-minute introduction call to qualify their needs immediately.',
-      type: 'immediate'
-    });
+  console.log("Attempting Login:", { email, password });
+
+  const res = await fetch(`${API}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Login failed");
   }
 
-  if (lead.status === LeadStatus.IN_PROGRESS) {
-    suggestions.push({
-      title: 'Share Product Demo',
-      description: 'Provide a personalized video demo or case study relevant to their industry.',
-      type: 'nurture'
-    });
-    suggestions.push({
-      title: 'Schedule Follow-up',
-      description: 'The last activity was a while ago. A gentle nudge via WhatsApp or email is recommended.',
-      type: 'nurture'
-    });
+  console.log("LOGIN RESPONSE:", data);
+
+  return data;
+};
+
+
+// REGISTER USER
+export const registerUser = async (
+  name: string,
+  email: string,
+  password: string,
+  role: string
+) => {
+
+  console.log("Attempting to Register:", { name, email, password, role });
+
+  const res = await fetch(`${API}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name, email, password, role })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Registration failed");
   }
 
-  if (lead.priority === LeadPriority.URGENT || lead.priority === LeadPriority.HIGH) {
-    suggestions.push({
-      title: 'Owner Involvement',
-      description: 'Escalate to the business owner for a "Specialist" touch to increase trust.',
-      type: 'escalation'
-    });
-    suggestions.push({
-      title: 'Priority Support',
-      description: 'Offer a direct line for any immediate questions to bypass standard queues.',
-      type: 'escalation'
-    });
-  }
+  console.log("REGISTER RESPONSE:", data);
 
-  if (lead.status === LeadStatus.LOST) {
-    suggestions.push({
-      title: 'Limited-Time Deal',
-      description: 'Offer a 10% discount if they re-consider within the next 48 hours.',
-      type: 'retention'
-    });
-    suggestions.push({
-      title: 'Feedback Request',
-      description: 'Ask for specific reasons for dropping to improve future sales processes.',
-      type: 'retention'
-    });
-  }
+  return data;
+};
 
-  return suggestions;
+
+// GET LEADS
+export const getLeads = async (token: string) => {
+
+  const res = await fetch(`${API}/leads`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  return await res.json();
+};
+
+
+// GET TASKS
+export const getTasks = async (token: string) => {
+
+  const res = await fetch(`${API}/tasks`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  return await res.json();
+};
+
+
+// GET STATS
+export const getStats = async (token: string) => {
+
+  const res = await fetch(`${API}/leads/stats`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  return await res.json();
+};
+
+
+// CREATE LEAD
+export const createLead = async (token: string, lead: any) => {
+
+  const res = await fetch(`${API}/leads/create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(lead)
+  });
+
+  return await res.json();
+};
+
+
+// CREATE TASK
+export const createTask = async (token: string, task: any) => {
+
+  const res = await fetch(`${API}/tasks/create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(task)
+  });
+
+  return await res.json();
+};
+
+export const deleteLead = async (token: string, id: string) => {
+
+  const res = await fetch(`http://localhost:5000/api/leads/${id}`, {
+
+    method: "DELETE",
+
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    }
+
+  });
+
+  return res.json();
 };

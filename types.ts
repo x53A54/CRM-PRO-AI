@@ -1,21 +1,20 @@
-
 export enum LeadStatus {
-  NEW = 'New',
-  IN_PROGRESS = 'In Progress',
-  CLOSED = 'Closed',
-  LOST = 'Lost'
+  NEW = 'new',
+  IN_PROGRESS = 'in_progress',
+  CLOSED = 'closed',
+  LOST = 'lost'
 }
 
 export enum LeadPriority {
-  LOW = 'Low',
-  MEDIUM = 'Medium',
-  HIGH = 'High',
-  URGENT = 'Urgent'
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  URGENT = 'urgent'
 }
 
 export enum UserRole {
-  OWNER = 'OWNER',
-  SALES = 'SALES'
+  ADMIN = 'admin',
+  EXECUTIVE = 'executive'
 }
 
 export enum TaskStatus {
@@ -26,7 +25,7 @@ export enum TaskStatus {
 
 export interface Activity {
   id: string;
-  type: 'note' | 'status_change' | 'call' | 'email' | 'task';
+  type: 'note' | 'status_change' | 'call' | 'email' | 'task' | 'system';
   content: string;
   timestamp: string;
   user: string;
@@ -45,32 +44,16 @@ export interface Task {
 }
 
 export interface Lead {
-  id: string;
+  _id?: string;
+  id?: string;
   name: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
   status: LeadStatus;
   priority: LeadPriority;
-  owner: string;
-  source: string;
-  createdAt: string;
-  lastActivity: string;
+  assignedTo?: string;
+  createdAt?: string;
   followUpDate?: string;
-  value: number;
-  lossReason?: string;
-  activities: Activity[];
-}
-
-export interface Suggestion {
-  title: string;
-  description: string;
-  type: 'immediate' | 'nurture' | 'escalation' | 'retention';
-}
-
-export interface UserStats {
-  totalLeads: number;
-  attended: number;
-  overdue: number;
-  lost: number;
-  successRate: number;
+  value?: number;
+  activities?: Activity[];
 }

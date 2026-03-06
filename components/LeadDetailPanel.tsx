@@ -1,8 +1,5 @@
-
-import React from 'react';
-import { Lead, LeadStatus, LeadPriority } from '../types';
-import { IconClock, IconSparkles, IconAlert } from './Icons';
-import { getApproachSuggestions } from '../intelligenceService';
+import React from "react";
+import { Lead, LeadStatus, LeadPriority } from "../types";
 
 interface Props {
   lead: Lead;
@@ -10,101 +7,131 @@ interface Props {
 }
 
 const LeadDetailPanel: React.FC<Props> = ({ lead, onClose }) => {
-  const suggestions = getApproachSuggestions(lead);
 
-  const getStatusColor = (status: LeadStatus) => {
+  const statusColor = (status: LeadStatus) => {
     switch (status) {
-      case LeadStatus.NEW: return 'text-[#06D001] bg-[#06D001]/10';
-      case LeadStatus.IN_PROGRESS: return 'text-[#9BEC00] bg-[#9BEC00]/10';
-      case LeadStatus.CLOSED: return 'text-emerald-400 bg-emerald-400/10';
-      case LeadStatus.LOST: return 'text-rose-400 bg-rose-400/10';
-      default: return 'text-slate-400 bg-slate-400/10';
+      case LeadStatus.NEW: return "bg-blue-500/20 text-blue-400";
+      case LeadStatus.IN_PROGRESS: return "bg-yellow-500/20 text-yellow-400";
+      case LeadStatus.CLOSED: return "bg-green-500/20 text-green-400";
+      case LeadStatus.LOST: return "bg-red-500/20 text-red-400";
+      default: return "bg-gray-500/20 text-gray-400";
     }
   };
 
-  const isOverdue = lead.followUpDate && new Date(lead.followUpDate) < new Date() && lead.status !== LeadStatus.CLOSED;
+  const priorityColor = (priority: LeadPriority) => {
+    switch (priority) {
+      case LeadPriority.URGENT: return "text-red-400";
+      case LeadPriority.HIGH: return "text-orange-400";
+      case LeadPriority.MEDIUM: return "text-yellow-400";
+      case LeadPriority.LOW: return "text-gray-400";
+      default: return "text-gray-400";
+    }
+  };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full md:w-[480px] glass border-l border-white/10 z-50 flex flex-col shadow-2xl">
-      <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-        <div>
-          <h3 className="text-xl font-bold text-white">{lead.name}</h3>
-          <p className="text-sm text-slate-500">{lead.email}</p>
-        </div>
-        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg text-slate-400 transition-colors text-2xl leading-none">&times;</button>
-      </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gradient-to-b from-transparent to-[#0a0c10]/50">
-        {/* Key Info */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Status</p>
-            <span className={`text-[10px] px-2 py-1 rounded-md uppercase font-bold tracking-wider ${getStatusColor(lead.status)}`}>{lead.status}</span>
+      {/* Overlay */}
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-3xl bg-[#0f1115] border border-white/10 rounded-2xl p-8 text-white z-10 shadow-2xl">
+
+        {/* Header */}
+        <div className="flex justify-between items-start mb-6">
+
+          <div>
+            <h2 className="text-3xl font-bold">{lead.name}</h2>
+            <p className="text-gray-400">{lead.email}</p>
           </div>
-          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Priority</p>
-            <span className={`text-[10px] font-bold uppercase ${lead.priority === LeadPriority.URGENT ? 'text-rose-400' : 'text-slate-200'}`}>{lead.priority}</span>
-          </div>
-          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Owner</p>
-            <p className="text-sm text-slate-200">{lead.owner}</p>
-          </div>
-          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Lead Value</p>
-            <p className="text-sm font-bold text-[#06D001]">${lead.value.toLocaleString()}</p>
-          </div>
+
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white text-xl"
+          >
+            ✕
+          </button>
+
         </div>
 
-        {/* Accountability Alert */}
-        {isOverdue && (
-          <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl flex items-start space-x-3">
-            <IconAlert className="w-5 h-5 text-rose-400 mt-0.5" />
-            <div>
-              <p className="text-sm font-bold text-rose-400">Accountability Breach</p>
-              <p className="text-xs text-rose-400/80">This lead has exceeded its follow-up window. Immediate engagement required.</p>
-            </div>
-          </div>
-        )}
+        {/* Lead Info Grid */}
+        <div className="grid grid-cols-2 gap-6 mb-8">
 
-        {/* Intelligence Engine */}
-        <div className="space-y-4">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center space-x-2">
-            <IconSparkles className="w-4 h-4 text-[#9BEC00]" />
-            <span>Approach Intelligence</span>
-          </h4>
-          <div className="grid gap-3">
-            {suggestions.map((s, idx) => (
-              <div key={idx} className="p-4 rounded-xl bg-[#F3FF90]/5 border border-[#F3FF90]/10 hover:border-[#F3FF90]/20 transition-all">
-                <p className="text-sm font-bold text-[#F3FF90] mb-1">{s.title}</p>
-                <p className="text-xs text-slate-400 leading-relaxed">{s.description}</p>
-              </div>
-            ))}
+          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-xs text-gray-400 uppercase mb-1">Status</p>
+            <span className={`px-2 py-1 rounded text-xs font-semibold ${statusColor(lead.status)}`}>
+              {lead.status}
+            </span>
           </div>
+
+          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-xs text-gray-400 uppercase mb-1">Priority</p>
+            <span className={`font-semibold ${priorityColor(lead.priority)}`}>
+              {lead.priority}
+            </span>
+          </div>
+
+          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-xs text-gray-400 uppercase mb-1">Phone</p>
+            <p>{lead.phone || "—"}</p>
+          </div>
+
+          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-xs text-gray-400 uppercase mb-1">Lead Value</p>
+            <p className="text-green-400 font-bold">${lead.value}</p>
+          </div>
+
+          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-xs text-gray-400 uppercase mb-1">Owner</p>
+            <p>{lead.assignedTo?.name || "Unassigned"}</p>
+          </div>
+
+          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-xs text-gray-400 uppercase mb-1">Follow Up</p>
+            <p>{lead.followUpDate || "Not scheduled"}</p>
+          </div>
+
         </div>
 
         {/* Activity Timeline */}
-        <div className="space-y-4">
-          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center space-x-2">
-            <IconClock className="w-4 h-4 text-[#06D001]" />
-            <span>Activity Logs</span>
-          </h4>
-          <div className="space-y-4 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-white/5">
-            {lead.activities.map((activity) => (
-              <div key={activity.id} className="relative pl-8">
-                <div className="absolute left-0 top-1.5 w-5 h-5 rounded-full bg-[#12141a] border-2 border-[#06D001] flex items-center justify-center">
-                   <div className="w-1.5 h-1.5 rounded-full bg-[#06D001]"></div>
+        <div>
+
+          <h3 className="text-sm font-semibold mb-4 text-gray-300">
+            Activity History
+          </h3>
+
+          <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+
+            {lead.activities && lead.activities.length > 0 ? (
+              lead.activities.map((activity) => (
+                <div key={activity.id} className="border-l border-white/10 pl-4">
+
+                  <div className="flex justify-between text-xs text-gray-400 mb-1">
+                    <span className="capitalize">{activity.type}</span>
+                    <span>{new Date(activity.timestamp).toLocaleDateString()}</span>
+                  </div>
+
+                  <p className="text-sm">{activity.content}</p>
+
+                  <p className="text-xs text-gray-500 mt-1">
+                    by {activity.user}
+                  </p>
+
                 </div>
-                <div className="flex justify-between items-start mb-1">
-                  <p className="text-xs font-bold text-slate-300 capitalize">{activity.type.replace('_', ' ')}</p>
-                  <p className="text-[10px] text-slate-500">{new Date(activity.timestamp).toLocaleDateString()}</p>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">{activity.content}</p>
-                <p className="text-[10px] text-slate-600 mt-1 italic">— {activity.user}</p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No activity yet</p>
+            )}
+
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 };
