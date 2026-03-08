@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { UserRole } from "../types";
 
 interface Props {
@@ -6,9 +6,15 @@ interface Props {
   role:UserRole;
   onDeleteLead:(id:string)=>void;
   onSelectLead:(lead:any)=>void;
+  filterStatus?:string|null;
 }
 
-const LeadsPage:React.FC<Props> = ({leads,role,onDeleteLead,onSelectLead}) => {
+const LeadsPage:React.FC<Props> = ({leads,role,onDeleteLead,onSelectLead,filterStatus}) => {
+const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
+
+const visibleLeads=filterStatus
+? leads.filter((lead:any)=>lead.status===filterStatus)
+: leads;
 
 const priorityColor=(p:string)=>{
 switch(p){
@@ -29,8 +35,15 @@ default:return "text-slate-400";
 }
 }
 
+const confirmDelete = () => {
+if (!leadToDelete) return;
+onDeleteLead(leadToDelete);
+setLeadToDelete(null);
+};
+
 return(
 
+<>
 <div className="overflow-x-auto">
 
 <table className="w-full text-sm text-left">
@@ -52,7 +65,7 @@ return(
 
 <tbody>
 
-{leads.map((lead:any)=>(
+{visibleLeads.map((lead:any)=>(
 
 <tr
 key={lead._id}
@@ -77,7 +90,7 @@ onClick={()=>onSelectLead(lead)}
 <td onClick={(e)=>e.stopPropagation()}>
 
 <button
-onClick={()=>onDeleteLead(lead._id)}
+onClick={()=>setLeadToDelete(lead._id)}
 className="text-red-400 text-xs hover:text-red-300"
 >
 
@@ -96,6 +109,38 @@ Delete
 </table>
 
 </div>
+
+{leadToDelete && (
+<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+  <div className="bg-[#0f172a] border border-white/10 rounded-2xl p-6 w-[400px] shadow-xl">
+    <h3 className="text-lg font-semibold text-white mb-2">
+      Delete Lead
+    </h3>
+
+    <p className="text-gray-400 mb-6">
+      Are you sure you want to delete this lead? This action cannot be undone.
+    </p>
+
+    <div className="flex justify-end gap-3">
+      <button
+        onClick={() => setLeadToDelete(null)}
+        className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10"
+      >
+        Cancel
+      </button>
+
+      <button
+        onClick={confirmDelete}
+        className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+)}
+
+</>
 
 );
 

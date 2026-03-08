@@ -21,6 +21,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ["admin", "executive"],
     default: "executive"
+  },
+
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Company",
+    required: false
   }
 
 }, { timestamps: true });

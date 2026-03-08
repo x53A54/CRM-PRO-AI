@@ -37,6 +37,19 @@ const leadSchema = new mongoose.Schema(
       default: "new"
     },
 
+    stage: {
+      type: String,
+      enum: [
+        "new",
+        "contacted",
+        "qualified",
+        "proposal",
+        "closed_won",
+        "closed_lost"
+      ],
+      default: "new"
+    },
+
     value: {
       type: Number,
       default: 0
@@ -45,6 +58,12 @@ const leadSchema = new mongoose.Schema(
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"
+    },
+
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
+      required: false
     },
 
     priority: {

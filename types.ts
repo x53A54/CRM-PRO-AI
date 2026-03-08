@@ -12,6 +12,15 @@ export enum LeadPriority {
   URGENT = 'urgent'
 }
 
+export enum LeadStage {
+  NEW = 'new',
+  CONTACTED = 'contacted',
+  QUALIFIED = 'qualified',
+  PROPOSAL = 'proposal',
+  CLOSED_WON = 'closed_won',
+  CLOSED_LOST = 'closed_lost'
+}
+
 export enum UserRole {
   ADMIN = 'admin',
   EXECUTIVE = 'executive'
@@ -50,6 +59,7 @@ export interface Lead {
   email?: string;
   phone?: string;
   status: LeadStatus;
+  stage?: LeadStage;
   priority: LeadPriority;
   assignedTo?: string;
   createdAt?: string;

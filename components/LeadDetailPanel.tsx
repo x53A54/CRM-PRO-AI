@@ -1,12 +1,16 @@
-import React from "react";
-import { Lead, LeadStatus, LeadPriority } from "../types";
+import React, { useState } from "react";
+import { Lead, LeadPriority, LeadStage, LeadStatus } from "../types";
+import { markLeadContacted, updateLeadStage } from "../intelligenceService";
 
 interface Props {
   lead: Lead;
   onClose: () => void;
+  onLeadUpdated?: (lead: Lead) => void;
 }
 
-const LeadDetailPanel: React.FC<Props> = ({ lead, onClose }) => {
+const LeadDetailPanel: React.FC<Props> = ({ lead, onClose, onLeadUpdated }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const leadId = lead._id || lead.id;
 
   const statusColor = (status: LeadStatus) => {
     switch (status) {
@@ -28,6 +32,58 @@ const LeadDetailPanel: React.FC<Props> = ({ lead, onClose }) => {
     }
   };
 
+  const handleContacted = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!leadId || !token || isSubmitting) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const updatedLead = await markLeadContacted(token, leadId);
+      onLeadUpdated?.(updatedLead);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update lead";
+      alert(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleStageUpdate = async (stage: LeadStage) => {
+    const token = localStorage.getItem("token");
+
+    if (!leadId || !token || isSubmitting) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const updatedLead =
+        stage === LeadStage.CONTACTED
+          ? await markLeadContacted(token, leadId)
+          : await updateLeadStage(token, leadId, stage);
+
+      onLeadUpdated?.(updatedLead);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update lead stage";
+      alert(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const stageButtons = [
+    { label: "Move to Contacted", stage: LeadStage.CONTACTED },
+    { label: "Move to Qualified", stage: LeadStage.QUALIFIED },
+    { label: "Send Proposal", stage: LeadStage.PROPOSAL },
+    { label: "Mark Won", stage: LeadStage.CLOSED_WON },
+    { label: "Mark Lost", stage: LeadStage.CLOSED_LOST }
+  ];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
 
@@ -46,14 +102,19 @@ const LeadDetailPanel: React.FC<Props> = ({ lead, onClose }) => {
           <div>
             <h2 className="text-3xl font-bold">{lead.name}</h2>
             <p className="text-gray-400">{lead.email}</p>
+            <p className="mt-2 text-xs uppercase tracking-widest text-slate-500">
+              Stage: {(lead.stage || LeadStage.NEW).replace(/_/g, " ")}
+            </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white text-xl"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white text-xl"
+            >
+              ✕
+            </button>
+          </div>
 
         </div>
 
@@ -94,6 +155,36 @@ const LeadDetailPanel: React.FC<Props> = ({ lead, onClose }) => {
             <p>{lead.followUpDate || "Not scheduled"}</p>
           </div>
 
+        </div>
+
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold mb-4 text-gray-300">
+            Pipeline Actions
+          </h3>
+
+          <div className="flex flex-wrap gap-3">
+            {stageButtons.map(button => {
+              const isCurrentStage = (lead.stage || LeadStage.NEW) === button.stage;
+
+              return (
+                <button
+                  key={button.stage}
+                  type="button"
+                  onClick={() =>
+                    button.stage === LeadStage.CONTACTED
+                      ? handleContacted()
+                      : handleStageUpdate(button.stage)
+                  }
+                  disabled={isSubmitting || isCurrentStage}
+                  className="px-5 py-2 rounded-xl primary-gradient text-sm font-bold text-white hover:opacity-90 transition disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting && button.stage === LeadStage.CONTACTED
+                    ? "Updating..."
+                    : button.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Activity Timeline */}

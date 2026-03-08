@@ -2,6 +2,7 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const Company = require("../models/Company");
 const User = require("../models/User");
 const authMiddleware = require("../middleware/authMiddleware");
 
@@ -14,9 +15,11 @@ router.post("/register", async (req, res) => {
 
   console.log("REGISTER HIT");
 
+  let createdCompany = null;
+
   try {
 
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, companyName, companyCode } = req.body;
 
     console.log("DATA RECEIVED:", name, email, password, role);
 
@@ -28,26 +31,89 @@ router.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    let resolvedCompanyId;
+    let createdCompanyCode;
+    let message = "User registered successfully";
+
+    if (role === "admin") {
+      if (!companyName) {
+        return res.status(400).json({ message: "Company name is required" });
+      }
+
+      let generatedCode = Company.generateCompanyCode(companyName);
+
+      while (await Company.findOne({ code: generatedCode })) {
+        generatedCode = Company.generateCompanyCode(companyName);
+      }
+
+      const company = new Company({
+        name: companyName,
+        code: generatedCode
+      });
+
+      await company.save();
+
+      createdCompany = company;
+      resolvedCompanyId = company._id;
+      createdCompanyCode = company.code;
+      message = "Admin registered successfully";
+    }
+
+    if (role === "executive") {
+      if (!companyCode) {
+        return res.status(400).json({ message: "Invalid company code" });
+      }
+
+      const company = await Company.findOne({
+        code: companyCode.toUpperCase().trim()
+      });
+
+      if (!company) {
+        return res.status(400).json({ message: "Invalid company code" });
+      }
+
+      resolvedCompanyId = company._id;
+      message = "Executive registered successfully";
+    }
 
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
-      role
+      role,
+      companyId: resolvedCompanyId
     });
 
     await newUser.save();
 
     console.log("USER SAVED SUCCESSFULLY");
 
+    const token = jwt.sign(
+      { id: newUser._id, role: newUser.role },
+      "secretkey",
+      { expiresIn: "1d" }
+    );
+
     res.status(201).json({
-      message: "User registered successfully"
+      message,
+      token,
+      role: newUser.role,
+      name: newUser.name,
+      ...(createdCompanyCode ? { companyCode: createdCompanyCode } : {})
     });
 
   } catch (error) {
 
     console.log("REGISTER CRASHED");
     console.error(error);
+
+    if (createdCompany) {
+      try {
+        await Company.findByIdAndDelete(createdCompany._id);
+      } catch (cleanupError) {
+        console.error("COMPANY CLEANUP FAILED", cleanupError);
+      }
+    }
 
     res.status(500).json({
       error: error.message
@@ -93,6 +159,7 @@ router.post("/login", async (req, res) => {
     res.json({
       token,
       role: user.role,
+      name: user.name,
       message: "Login successful"
     });
 
